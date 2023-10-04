@@ -1,0 +1,40 @@
+Interview Questions:-
+Question 18: How to load incremental data using pyspark.
+
+Let's illustrate the process of loading incremental data in a banking context using a simplified PySpark example with sample data. In this example, we'll work with transaction data and load new transactions into an existing dataset.
+
+There are two files existing_data.csv and new_data.csv for that we have following pyspark code.
+
+# Load existing transaction data
+existing_data_df = spark.read \
+  .format("csv") \
+  .option("header", "true") \
+  .load("dbfs:/FileStore/raw/existing_data.csv")
+
+# Load new transaction data
+new_data_df = spark.read \
+  .format("csv") \
+  .option("header", "true") \
+  .load("dbfs:/FileStore/raw/new_data.csv")
+
+existing_data_df.show()
+
+# Identify new records based on timestamp
+max_timestamp_existing = existing_data_df.selectExpr("max(timestamp)").collect()[0][0]
+new_records_df = new_data_df.filter(new_data_df.timestamp > max_timestamp_existing)
+
+# Append new records to existing data
+updated_data_df = existing_data_df.union(new_records_df)
+
+# Show the updated dataset
+updated_data_df.show()
+
+In this code:
+We load the existing and new transaction data from CSV files into PySpark DataFrames.
+We identify new records by comparing timestamps. In a real banking project, you might use more complex criteria, such as account numbers and transaction IDs.
+We append the new records to the existing dataset.
+Finally, we can write the updated dataset back to the target data store, or in this case, overwrite the existing CSV file.
+Remember to adjust the code to your specific use case, including handling different data formats, database connections, and additional data validation and transformations as needed.
+
+Note : We can parametrize file path for loading daily incremntal data accroding to the use case.
+Post Credits Priyam Jain
